@@ -1,0 +1,9 @@
+[build-system]
+requires = ["flit_core >=2,<3"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "ie_bike_model"
+author = "Juan Luis Cano Rodríguez"
+author-email = "jcano@faculty.ie.edu"
+
