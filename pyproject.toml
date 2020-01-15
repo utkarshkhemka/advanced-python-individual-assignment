@@ -6,4 +6,12 @@ build-backend = "flit_core.buildapi"
 module = "ie_bike_model"
 author = "Juan Luis Cano Rodríguez"
 author-email = "jcano@faculty.ie.edu"
+requires = [
+  "scikit-learn",
+]
 
+[tool.flit.metadata.requires-extra]
+dev = [
+  "black",
+  "pytest",
+]
