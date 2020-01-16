@@ -228,3 +228,18 @@ def get_input_dict(parameters):
     return df.iloc[0].to_dict()
 
 
+def predict(parameters, model_dir=None):
+    """Returns model prediction.
+
+    """
+    model_path = get_model_path(model_dir)
+    if not os.path.exists(model_path):
+        train_and_persist(model_dir)
+
+    model = joblib.load(model_path)
+
+    input_dict = get_input_dict(parameters)
+    X_input = pd.DataFrame([pd.Series(input_dict)])
+
+    result = model.predict(X_input)
+    return result
