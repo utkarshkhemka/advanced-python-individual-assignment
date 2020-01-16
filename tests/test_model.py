@@ -156,7 +156,7 @@ def test_predict_returns_expected_output():
         "temperature_C": 9.84,
         "feeling_temperature_C": 14.395,
         "humidity": 81.0,
-        "windsped": 0.0,
+        "windspeed": 0.0,
     }
 
     # xgb.predict(hour_d_test_x.iloc[0:1])
