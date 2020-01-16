@@ -120,12 +120,12 @@ def test_get_input_dict_returns_expected_result():
     }
 
     parameters = {
-        "date": dt.datetime(2011, 1, 1, 0, 0, 0),
+        "date": dt.datetime(2012, 10, 1, 1, 0, 0),
         "weathersit": 1,
-        "temperature_C": 9.84,
-        "feeling_temperature_C": 14.395,
-        "humidity": 81.0,
-        "windspeed": 0.0,
+        "temperature_C": 18.04,
+        "feeling_temperature_C": 21.97,
+        "humidity": 77.0,
+        "windspeed": 6.0032,
     }
 
     result = get_input_dict(parameters)
