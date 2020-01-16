@@ -1,3 +1,4 @@
+import datetime as dt
 import os
 from pathlib import Path
 import re
@@ -5,10 +6,14 @@ import re
 import joblib
 import numpy as np
 import pandas as pd
+from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from scipy.stats import skew
 from xgboost import XGBRegressor
 
-from ie_bike_model.util import get_data_directory
+from ie_bike_model.util import read_data, get_season, get_model_path
+
+
+US_HOLIDAYS = calendar().holidays()
 
 
 def feature_engineering(hour):
@@ -94,7 +99,17 @@ def preprocess(hour):
     # dropping duplicated rows used for feature engineering
     hour = hour.drop(columns=["hr2", "season2", "temp2", "hum2", "weekday2"])
 
+    return hour
+
+
+def dummify(hour, known_columns=None):
     hour = pd.get_dummies(hour)
+    if known_columns is not None:
+        for col in known_columns:
+            if col not in hour.columns:
+                hour[col] = 0
+
+        hour = hour[known_columns]
 
     return hour
 
@@ -149,19 +164,82 @@ def train_xgboost(hour):
     return xgb
 
 
+def postprocess(hour):
+    # Avoid modifying the original dataset at the cost of RAM
+    hour = hour.copy()
+
+    hour.columns = hour.columns.str.replace("[\[\]\<]", "_")
+    return hour
+
+
 def train_and_persist(model_dir=None, hour_path=None):
-    if model_dir is None:
-        model_dir = os.path.dirname(__file__)
-
-    if hour_path is None:
-        hour_path = os.path.join(get_data_directory(), "hour.csv")
-
-    hour = pd.read_csv(hour_path, index_col="instant", parse_dates=True)
+    hour = read_data(hour_path)
     hour = preprocess(hour)
+    hour = dummify(hour)
+    hour = postprocess(hour)
 
     # TODO: Implement other models?
     model = train_xgboost(hour)
 
-    model_path = os.path.join(model_dir, "model.pkl")
+    model_path = get_model_path(model_dir)
 
     joblib.dump(model, model_path)
+
+
+def get_input_dict(parameters):
+    hour_original = read_data()
+    base_year = pd.to_datetime(hour_original["dteday"]).min().year
+
+    date = parameters["date"]
+
+    is_holiday = date in US_HOLIDAYS
+    is_weekend = date.weekday() in (5, 6)
+
+    row = pd.Series(
+        {
+            "dteday": date.strftime("%Y-%m-%d"),
+            "season": get_season(date),
+            "yr": date.year - base_year,
+            "mnth": date.month,
+            "hr": date.hour,
+            "holiday": 1 if is_holiday else 0,
+            "weekday": (date.weekday() + 1) % 7,
+            "workingday": 0 if is_holiday or is_weekend else 1,
+            "weathersit": parameters["weathersit"],
+            "temp": parameters["temperature_C"] / 41.0,
+            "atemp": parameters["feeling_temperature_C"] / 50.0,
+            "hum": parameters["humidity"] / 100.0,
+            "windspeed": parameters["windspeed"] / 67.0,
+            "cnt": 1,  # Dummy, unused for prediction
+        }
+    )
+
+    dummified_original = dummify(preprocess(hour_original))
+
+    df = pd.DataFrame([row])
+    df = preprocess(df)
+    df = dummify(df, dummified_original.columns)
+    df = postprocess(df)
+
+    df = df.drop(columns=["dteday", "atemp", "casual", "registered", "cnt"])
+
+    assert len(df) == 1
+
+    return df.iloc[0].to_dict()
+
+
+def predict(parameters, model_dir=None):
+    """Returns model prediction.
+
+    """
+    model_path = get_model_path(model_dir)
+    if not os.path.exists(model_path):
+        train_and_persist(model_dir)
+
+    model = joblib.load(model_path)
+
+    input_dict = get_input_dict(parameters)
+    X_input = pd.DataFrame([pd.Series(input_dict)])
+
+    result = model.predict(X_input)
+    return result
