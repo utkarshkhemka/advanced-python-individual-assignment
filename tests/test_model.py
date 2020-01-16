@@ -125,7 +125,7 @@ def test_get_input_dict_returns_expected_result():
         "temperature_C": 9.84,
         "feeling_temperature_C": 14.395,
         "humidity": 81.0,
-        "windsped": 0.0,
+        "windspeed": 0.0,
     }
 
     result = get_input_dict(parameters)
