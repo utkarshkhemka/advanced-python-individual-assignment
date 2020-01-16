@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.stats import skew
 from xgboost import XGBRegressor
 
-from ie_bike_model.util import get_data_directory
+from ie_bike_model.util import read_data
 
 
 def feature_engineering(hour):
@@ -153,10 +153,7 @@ def train_and_persist(model_dir=None, hour_path=None):
     if model_dir is None:
         model_dir = os.path.dirname(__file__)
 
-    if hour_path is None:
-        hour_path = os.path.join(get_data_directory(), "hour.csv")
-
-    hour = pd.read_csv(hour_path, index_col="instant", parse_dates=True)
+    hour = read_data(hour_path)
     hour = preprocess(hour)
 
     # TODO: Implement other models?
