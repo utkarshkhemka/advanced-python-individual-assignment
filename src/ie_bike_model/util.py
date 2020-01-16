@@ -13,6 +13,14 @@ def get_data_directory():
     return data_dir
 
 
+def get_model_path(model_dir=None):
+    if model_dir is None:
+        model_dir = os.path.dirname(__file__)
+
+    model_path = os.path.join(model_dir, "model.pkl")
+    return model_path
+
+
 def read_data(hour_path=None):
     if hour_path is None:
         hour_path = os.path.join(get_data_directory(), "hour.csv")

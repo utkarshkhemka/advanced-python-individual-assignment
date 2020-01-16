@@ -10,7 +10,7 @@ from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from scipy.stats import skew
 from xgboost import XGBRegressor
 
-from ie_bike_model.util import read_data, get_season
+from ie_bike_model.util import read_data, get_season, get_model_path
 
 
 US_HOLIDAYS = calendar().holidays()
@@ -165,9 +165,6 @@ def train_xgboost(hour):
 
 
 def train_and_persist(model_dir=None, hour_path=None):
-    if model_dir is None:
-        model_dir = os.path.dirname(__file__)
-
     hour = read_data(hour_path)
     hour = preprocess(hour)
     hour = dummify(hour)
@@ -175,7 +172,7 @@ def train_and_persist(model_dir=None, hour_path=None):
     # TODO: Implement other models?
     model = train_xgboost(hour)
 
-    model_path = os.path.join(model_dir, "model.pkl")
+    model_path = get_model_path(model_dir)
 
     joblib.dump(model, model_path)
 
