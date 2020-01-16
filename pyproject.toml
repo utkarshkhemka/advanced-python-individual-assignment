@@ -7,7 +7,9 @@ module = "ie_bike_model"
 author = "Juan Luis Cano Rodríguez"
 author-email = "jcano@faculty.ie.edu"
 requires = [
+  "pandas",
   "scikit-learn",
+  "xgboost",
 ]
 
 [tool.flit.metadata.requires-extra]
