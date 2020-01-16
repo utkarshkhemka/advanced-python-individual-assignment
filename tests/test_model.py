@@ -133,22 +133,6 @@ def test_get_input_dict_returns_expected_result():
     assert result == expected_result
 
 
-# Best mock tutorial: https://www.toptal.com/python/an-introduction-to-mocking-in-python
-@mock.patch("ie_bike_model.model.joblib.load")
-@mock.patch("ie_bike_model.model.train_and_persist")
-def test_predict_does_not_call_train_and_persist_if_model_was_found(
-    mock_train_and_persist, mock_joblib_load
-):
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        expected_model_path = os.path.join(tmp_dir, "model.pkl")
-        Path(expected_model_path).touch()
-
-        predict({}, model_dir=tmp_dir)
-
-        mock_train_and_persist.assert_not_called()
-        mock_joblib_load.assert_called_once_with()
-
-
 def test_predict_returns_expected_output():
     parameters = {
         "date": dt.datetime(2011, 1, 1, 0, 0, 0),
