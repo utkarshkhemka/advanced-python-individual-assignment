@@ -1,3 +1,4 @@
+import datetime as dt
 import os
 
 import pandas as pd
@@ -18,3 +19,26 @@ def read_data(hour_path=None):
 
     hour = pd.read_csv(hour_path, index_col="instant", parse_dates=True)
     return hour
+
+
+def get_season(date):
+    """Get season, assuming fixed equinoxes and solstices.
+
+    """
+    WINTER_SOLSTICE = dt.datetime(2000, 12, 21)
+    SPRING_EQUINOX = dt.datetime(2000, 3, 21)
+    SUMMER_SOLSTICE = dt.datetime(2000, 6, 21)
+    FALL_EQUINOX = dt.datetime(2000, 9, 21)
+
+    # For comparison purposes
+    date = date.replace(year=2000)
+
+    # Use correct encoding for seasons!
+    if SPRING_EQUINOX <= date < SUMMER_SOLSTICE:
+        return 2
+    elif SUMMER_SOLSTICE <= date < FALL_EQUINOX:
+        return 3
+    elif FALL_EQUINOX <= date < WINTER_SOLSTICE:
+        return 4
+    else:
+        return 1
