@@ -94,7 +94,17 @@ def preprocess(hour):
     # dropping duplicated rows used for feature engineering
     hour = hour.drop(columns=["hr2", "season2", "temp2", "hum2", "weekday2"])
 
+    return hour
+
+
+def dummify(hour, known_columns=None):
     hour = pd.get_dummies(hour)
+    if known_columns is not None:
+        for col in known_columns:
+            if col not in hour.columns:
+                hour[col] = 0
+
+        hour = hour[known_columns]
 
     return hour
 
@@ -155,6 +165,7 @@ def train_and_persist(model_dir=None, hour_path=None):
 
     hour = read_data(hour_path)
     hour = preprocess(hour)
+    hour = dummify(hour)
 
     # TODO: Implement other models?
     model = train_xgboost(hour)
