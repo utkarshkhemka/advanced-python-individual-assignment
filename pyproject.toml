@@ -17,4 +17,5 @@ dev = [
   "black",
   "notebook",
   "pytest",
+  "pytest-cov",
 ]
