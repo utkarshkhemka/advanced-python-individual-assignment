@@ -164,10 +164,19 @@ def train_xgboost(hour):
     return xgb
 
 
+def postprocess(hour):
+    # Avoid modifying the original dataset at the cost of RAM
+    hour = hour.copy()
+
+    hour.columns = hour.columns.str.replace("[\[\]\<]", "_")
+    return hour
+
+
 def train_and_persist(model_dir=None, hour_path=None):
     hour = read_data(hour_path)
     hour = preprocess(hour)
     hour = dummify(hour)
+    hour = postprocess(hour)
 
     # TODO: Implement other models?
     model = train_xgboost(hour)
@@ -210,6 +219,7 @@ def get_input_dict(parameters):
     df = pd.DataFrame([row])
     df = preprocess(df)
     df = dummify(df, dummified_original.columns)
+    df = postprocess(df)
 
     df = df.drop(columns=["dteday", "atemp", "casual", "registered", "cnt"])
 
