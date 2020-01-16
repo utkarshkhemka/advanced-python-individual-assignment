@@ -242,4 +242,6 @@ def predict(parameters, model_dir=None):
     X_input = pd.DataFrame([pd.Series(input_dict)])
 
     result = model.predict(X_input)
-    return result
+
+    # Undo np.sqrt(hour["cnt"])
+    return int(result ** 2)

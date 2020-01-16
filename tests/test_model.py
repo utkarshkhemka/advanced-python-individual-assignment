@@ -143,9 +143,9 @@ def test_predict_returns_expected_output():
         "windspeed": 0.0,
     }
 
-    # xgb.predict(hour_d_test_x.iloc[0:1])
-    expected_result = 1.0255429
+    # int(np.round(xgb.predict(hour_d_test_x.iloc[0:1]) ** 2))
+    expected_result = 1
 
     result = predict(parameters)
 
-    assert result == pytest.approx(expected_result)
+    assert result == expected_result
