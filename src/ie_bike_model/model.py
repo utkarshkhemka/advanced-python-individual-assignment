@@ -149,7 +149,10 @@ def train_xgboost(hour):
     return xgb
 
 
-def train_and_persist(model_dir, hour_path=None):
+def train_and_persist(model_dir=None, hour_path=None):
+    if model_dir is None:
+        model_dir = os.path.dirname(__file__)
+
     if hour_path is None:
         hour_path = os.path.join(get_data_directory(), "hour.csv")
 
