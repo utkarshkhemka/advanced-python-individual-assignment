@@ -1,5 +1,5 @@
 # Bike sharing prediction model
-
+## Name : Utkarsh Khemka
 ## Usage
 
 To install the library:
