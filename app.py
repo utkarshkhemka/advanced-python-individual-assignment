@@ -12,7 +12,7 @@ def hello():
     return "Hello, " + name + "!"
 
 
-@app.route("/predict")
+@app.route("/predict", methods=["GET"])
 def get_predict():
     parameters = dict(request.args)
     parameters["date"] = dt.datetime.fromisoformat(parameters["date"])
@@ -22,5 +22,6 @@ def get_predict():
     parameters["humidity"] = float(parameters["humidity"])
     parameters["windspeed"] = float(parameters["windspeed"])
 
-    result = predict(parameters)
-    return {"result": result}
+    model = str(request.args.get("model", "xgboost"))
+    result = predict(parameters, model_name=model)
+    return {"No. of bikes": result}

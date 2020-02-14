@@ -18,11 +18,13 @@ def get_data_directory():
     return data_dir
 
 
-def get_model_path(model_dir=None):
+def get_model_path(model_dir=None, model="xgboost"):
     if model_dir is None:
         model_dir = os.path.dirname(__file__)
-
-    model_path = os.path.join(model_dir, "model.pkl")
+    if model == "ridge":
+        model_path = os.path.join(model_dir, "ridge.pkl")
+    else:
+        model_path = os.path.join(model_dir, "xgboost.pkl")
     return model_path
 
 

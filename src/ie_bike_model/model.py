@@ -9,7 +9,7 @@ import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from scipy.stats import skew
 from xgboost import XGBRegressor
-
+from sklearn.linear_model import Ridge
 from ie_bike_model.util import read_data, get_season, get_model_path
 
 
@@ -147,7 +147,9 @@ def train_xgboost(hour):
 
     hour_d = hour_d.select_dtypes(exclude="category")
 
-    hour_d_train_x, _, hour_d_train_y, _, = split_train_test(hour_d)
+    hour_d_train_x, hour_d_test_x, hour_d_train_y, hour_d_test_y = split_train_test(
+        hour_d
+    )
 
     xgb = XGBRegressor(
         max_depth=3,
@@ -164,6 +166,26 @@ def train_xgboost(hour):
     return xgb
 
 
+def train_ridge(hour):
+
+    hour_d = pd.get_dummies(hour)
+    regex = re.compile(r"\[|\]|<", re.IGNORECASE)
+    hour_d.columns = [
+        regex.sub("_", col) if any(x in str(col) for x in set(("[", "]", "<"))) else col
+        for col in hour_d.columns.values
+    ]
+    hour_d = hour_d.select_dtypes(exclude="category")
+
+    hour_d_train_x, hour_d_test_x, hour_d_train_y, hour_d_test_y = split_train_test(
+        hour_d
+    )
+
+    ridge = Ridge()
+
+    ridge.fit(hour_d_train_x, hour_d_train_y)
+    return ridge
+
+
 def postprocess(hour):
     # Avoid modifying the original dataset at the cost of RAM
     hour = hour.copy()
@@ -172,18 +194,20 @@ def postprocess(hour):
     return hour
 
 
-def train_and_persist(model_dir=None, hour_path=None):
+def train_and_persist(model_dir=None, hour_path=None, model="xgboost"):
     hour = read_data(hour_path)
     hour = preprocess(hour)
     hour = dummify(hour)
     hour = postprocess(hour)
 
     # TODO: Implement other models?
-    model = train_xgboost(hour)
+    if model == "ridge":
+        model_train = train_ridge(hour)
 
-    model_path = get_model_path(model_dir)
-
-    joblib.dump(model, model_path)
+    else:
+        model_train = train_xgboost(hour)
+    model_path = get_model_path(model_dir, model)
+    joblib.dump(model_train, model_path)
 
 
 def get_input_dict(parameters):
@@ -228,20 +252,21 @@ def get_input_dict(parameters):
     return df.iloc[0].to_dict()
 
 
-def predict(parameters, model_dir=None):
+def predict(parameters, model_dir=None, model_name="xgboost"):
     """Returns model prediction.
 
     """
-    model_path = get_model_path(model_dir)
+    model_path = get_model_path(model_dir, model=model_name)
     if not os.path.exists(model_path):
-        train_and_persist(model_dir)
 
-    model = joblib.load(model_path)
+        train_and_persist(model_dir, model=model_name)
+
+    model_train = joblib.load(model_path)
 
     input_dict = get_input_dict(parameters)
     X_input = pd.DataFrame([pd.Series(input_dict)])
 
-    result = model.predict(X_input)
+    result = model_train.predict(X_input)
 
     # Undo np.sqrt(hour["cnt"])
     return int(result ** 2)
